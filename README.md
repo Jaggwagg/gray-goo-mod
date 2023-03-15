@@ -5,7 +5,6 @@ Fabric only for now. Forge port coming soon!
 
 ## Testing Environment
 * OS: Arch Linux
-* Kernel: x86_64 6.1.5-zen2-1-zen
 
 ## Dependencies
 * Gradle
