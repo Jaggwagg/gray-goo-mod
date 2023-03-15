@@ -10,7 +10,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
@@ -56,9 +55,7 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
             }
 
             if (grayGooBlockEntity.getTrait("fluid")) {
-                GrayGoo.CONFIG.getFluidBlocks().forEach(value -> {
-                    blocks.add(Registries.BLOCK.get(new Identifier(value)));
-                });
+                GrayGoo.CONFIG.getFluidBlocks().forEach(value -> blocks.add(Registries.BLOCK.get(new Identifier(value))));
             }
 
             if (grayGooBlockEntity.getTrait("solid")) {
@@ -167,7 +164,7 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
                 int randomExplosionChance = random.nextInt(50);
 
                 if (randomExplosionChance == 0) {
-                    world.createExplosion(null, DamageSource.GENERIC, null, pos.getX(), pos.getY(), pos.getZ(), 2.0f, true, World.ExplosionSourceType.BLOCK);
+                    world.createExplosion(null, world.getDamageSources().generic(), null, pos.getX(), pos.getY(), pos.getZ(), 2.0f, true, World.ExplosionSourceType.BLOCK);
                 }
             }
         }
@@ -191,7 +188,7 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
         if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
             if (grayGooBlockEntity.getTrait("tainted")) {
                 this.grow(world, pos);
-                entity.damage(DamageSource.CACTUS, 2);
+                entity.damage(world.getDamageSources().cactus(), 2);
 
                 if (entity instanceof LivingEntity livingEntity) {
                     livingEntity.addStatusEffect(new StatusEffectInstance(Objects.requireNonNull(StatusEffect.byRawId(17)), 200));

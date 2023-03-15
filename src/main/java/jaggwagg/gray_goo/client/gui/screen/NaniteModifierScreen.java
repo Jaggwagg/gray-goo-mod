@@ -41,14 +41,14 @@ public class NaniteModifierScreen extends HandledScreen<NaniteModifierScreenHand
         RenderSystem.setShaderTexture(0, TEXTURE);
         int i = this.x;
         int j = this.y;
-        this.drawTexture(matrices, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        drawTexture(matrices, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
         int k = (int)(41.0F * this.scrollAmount);
-        this.drawTexture(matrices, i + 119, j + 15 + k, 176 + (this.shouldScroll() ? 0 : 12), 0, 12, 15);
+        drawTexture(matrices, i + 119, j + 15 + k, 176 + (this.shouldScroll() ? 0 : 12), 0, 12, 15);
         int l = this.x + 52;
         int m = this.y + 14;
         int n = this.scrollOffset + 12;
         this.renderRecipeBackground(matrices, mouseX, mouseY, l, m, n);
-        this.renderRecipeIcons(l, m, n);
+        this.renderRecipeIcons(matrices, l, m, n);
     }
 
     protected void drawMouseoverTooltip(MatrixStack matrices, int x, int y) {
@@ -79,12 +79,12 @@ public class NaniteModifierScreen extends HandledScreen<NaniteModifierScreenHand
                 n += 18;
             }
 
-            this.drawTexture(matrices, k, m - 1, 0, n, 16, 18);
+            drawTexture(matrices, k, m - 1, 0, n, 16, 18);
         }
 
     }
 
-    private void renderRecipeIcons(int x, int y, int scrollOffset) {
+    private void renderRecipeIcons(MatrixStack matrices, int x, int y, int scrollOffset) {
         List<Item> list = this.handler.getAvailableTraits();
 
         for(int i = this.scrollOffset; i < scrollOffset && i < this.handler.getAvailableRecipeCount(); ++i) {
@@ -93,7 +93,7 @@ public class NaniteModifierScreen extends HandledScreen<NaniteModifierScreenHand
             int l = j / 4;
             int m = y + l * 18 + 2;
             assert this.client != null;
-            this.client.getItemRenderer().renderInGuiWithOverrides(new ItemStack(list.get(i)), k, m);
+            this.client.getItemRenderer().renderInGuiWithOverrides(matrices, new ItemStack(list.get(i)), k, m);
         }
 
     }

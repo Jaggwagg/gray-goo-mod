@@ -12,7 +12,7 @@ public class GrayGooScreenHandlers {
     public static ScreenHandlerType<NaniteModifierScreenHandler> NANITE_ASSEMBLER;
 
     public static void init() {
-        NANITE_ASSEMBLER = Registry.register(Registries.SCREEN_HANDLER, new Identifier(GrayGoo.MOD_ID, "nanite_assembler"), new ScreenHandlerType<>(NaniteModifierScreenHandler::new));
+        NANITE_ASSEMBLER = Registry.register(Registries.SCREEN_HANDLER, new Identifier(GrayGoo.MOD_ID, "nanite_assembler"), new ScreenHandlerType<>(NaniteModifierScreenHandler::new, null));
     }
 
     public static void initClient() {
