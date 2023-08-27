@@ -17,5 +17,5 @@
   "item.gray_goo.selfdestruct_nanite_trait": "Self-Destruct Nanite Trait",
   "item.gray_goo.solid_nanite_trait": "Solid Nanite Trait",
   "item.gray_goo.tainted_nanite_trait": "Tainted Nanite Trait",
-  "itemGroup.gray_goo.general": "Grey Goo"
+  "group.gray_goo.general": "Grey Goo"
 }

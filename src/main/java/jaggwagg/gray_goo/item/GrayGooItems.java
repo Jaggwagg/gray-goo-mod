@@ -1,10 +1,17 @@
 package jaggwagg.gray_goo.item;
 
 import jaggwagg.gray_goo.GrayGoo;
+import jaggwagg.gray_goo.block.GrayGooBlocks;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
@@ -12,11 +19,16 @@ import java.util.Arrays;
 import java.util.Locale;
 
 public class GrayGooItems {
+    public static final RegistryKey<ItemGroup> ITEM_GROUP = RegistryKey.of(RegistryKeys.ITEM_GROUP, new Identifier(GrayGoo.MOD_ID, "general"));
     public static final ArrayList<String> TRAIT_KEYS = new ArrayList<>();
 
     public static void init() {
         Arrays.stream(Items.values()).forEach(value -> registerItem(value.item, value.name));
         Arrays.stream(Traits.values()).forEach(value -> registerItem(value.item, value.name));
+        Registry.register(Registries.ITEM_GROUP, ITEM_GROUP, FabricItemGroup.builder()
+                .icon(() -> new ItemStack(GrayGooBlocks.Blocks.GRAY_GOO.block.asItem()))
+                .displayName(Text.translatable("group." + GrayGoo.MOD_ID + ".general"))
+                .build());
         Arrays.stream(Traits.values()).forEach(value -> {
             String string = value.toString().toLowerCase();
             int end = string.indexOf("_");
@@ -66,6 +78,6 @@ public class GrayGooItems {
 
     public static void registerItem(Item item, String name) {
         Registry.register(Registries.ITEM, new Identifier(GrayGoo.MOD_ID, name), item);
-        ItemGroupEvents.modifyEntriesEvent(GrayGoo.ITEM_GROUP).register(content -> content.add(item));
+        ItemGroupEvents.modifyEntriesEvent(ITEM_GROUP).register(content -> content.add(item));
     }
 }

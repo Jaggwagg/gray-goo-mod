@@ -2,11 +2,11 @@ package jaggwagg.gray_goo.block;
 
 import jaggwagg.gray_goo.GrayGoo;
 import jaggwagg.gray_goo.block.entity.GrayGooBlockEntity;
+import jaggwagg.gray_goo.item.GrayGooItems;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
-import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -25,9 +25,9 @@ public class GrayGooBlocks {
     }
 
     public enum Blocks {
-        EMP_SWITCH(new EMPSwitchBlock(FabricBlockSettings.of(Material.METAL).strength(2.0f).requiresTool())),
-        GRAY_GOO(new GrayGooBlock(FabricBlockSettings.of(Material.METAL).ticksRandomly().breakInstantly())),
-        NANITE_MODIFIER(new NaniteModifierBlock(FabricBlockSettings.of(Material.METAL).strength(2.0f).requiresTool()));
+        EMP_SWITCH(new EMPSwitchBlock(FabricBlockSettings.create().strength(2.0f).requiresTool())),
+        GRAY_GOO(new GrayGooBlock(FabricBlockSettings.create().ticksRandomly().breakInstantly())),
+        NANITE_MODIFIER(new NaniteModifierBlock(FabricBlockSettings.create().strength(2.0f).requiresTool()));
 
         public final String name;
         public final Block block;
@@ -41,6 +41,6 @@ public class GrayGooBlocks {
     public static void registerBlock(Block block, String name) {
         Registry.register(Registries.BLOCK, new Identifier(GrayGoo.MOD_ID, name), block);
         BlockItem item = Registry.register(Registries.ITEM, new Identifier(GrayGoo.MOD_ID, name), new BlockItem(block, new Item.Settings()));
-        ItemGroupEvents.modifyEntriesEvent(GrayGoo.ITEM_GROUP).register(content -> content.add(item));
+        ItemGroupEvents.modifyEntriesEvent(GrayGooItems.ITEM_GROUP).register(content -> content.add(item));
     }
 }

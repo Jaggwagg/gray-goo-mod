@@ -1,7 +1,8 @@
-package jaggwagg.gray_goo.client;
+package jaggwagg.gray_goo;
 
 import jaggwagg.gray_goo.block.GrayGooBlocks;
 import jaggwagg.gray_goo.block.entity.GrayGooBlockEntity;
+import jaggwagg.gray_goo.gui.screen.NaniteModifierScreen;
 import jaggwagg.gray_goo.item.GrayGooItems;
 import jaggwagg.gray_goo.screen.GrayGooScreenHandlers;
 import net.fabricmc.api.ClientModInitializer;
@@ -9,14 +10,16 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.nbt.NbtCompound;
 
 @Environment(EnvType.CLIENT)
 public class GrayGooClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        GrayGooScreenHandlers.initClient();
+        HandledScreens.register(GrayGooScreenHandlers.NANITE_ASSEMBLER, NaniteModifierScreen::new);
         registerColorProviders();
+        GrayGoo.LOGGER.info("Successfully initialized client!");
     }
 
     private static void registerColorProviders() {
