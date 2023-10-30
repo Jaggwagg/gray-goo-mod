@@ -33,7 +33,6 @@ public class NaniteModifierScreen extends HandledScreen<NaniteModifierScreenHand
     }
 
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        this.renderBackground(context);
         int i = this.x;
         int j = this.y;
         context.drawTexture(TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);

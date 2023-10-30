@@ -12,6 +12,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -191,8 +192,8 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
                 entity.damage(world.getDamageSources().cactus(), 2);
 
                 if (entity instanceof LivingEntity livingEntity) {
-                    livingEntity.addStatusEffect(new StatusEffectInstance(Objects.requireNonNull(StatusEffect.byRawId(17)), 200));
-                    livingEntity.addStatusEffect(new StatusEffectInstance(Objects.requireNonNull(StatusEffect.byRawId(19)), 200));
+                    livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 200));
+                    livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200));
                 }
             }
         }
@@ -225,8 +226,8 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
             }
 
             if (grayGooBlockEntity.getTrait("tainted")) {
-                player.addStatusEffect(new StatusEffectInstance(Objects.requireNonNull(StatusEffect.byRawId(17)), 200));
-                player.addStatusEffect(new StatusEffectInstance(Objects.requireNonNull(StatusEffect.byRawId(19)), 200));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 200));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200));
             }
         }
 
