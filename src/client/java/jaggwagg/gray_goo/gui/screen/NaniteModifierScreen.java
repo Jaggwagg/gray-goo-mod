@@ -132,17 +132,6 @@ public class NaniteModifierScreen extends HandledScreen<NaniteModifierScreenHand
         }
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-        if (this.shouldScroll()) {
-            int i = this.getMaxScroll();
-            float f = (float)amount / (float)i;
-            this.scrollAmount = MathHelper.clamp(this.scrollAmount - f, 0.0F, 1.0F);
-            this.scrollOffset = (int)((double)(this.scrollAmount * (float)i) + 0.5) * 4;
-        }
-
-        return true;
-    }
-
     private boolean shouldScroll() {
         return this.handler.getAvailableRecipeCount() > 12;
     }
