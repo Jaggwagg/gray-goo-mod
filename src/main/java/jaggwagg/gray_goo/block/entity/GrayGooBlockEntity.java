@@ -1,14 +1,15 @@
 package jaggwagg.gray_goo.block.entity;
 
-import jaggwagg.gray_goo.block.GrayGooBlocks;
-import jaggwagg.gray_goo.item.GrayGooItems;
+import jaggwagg.gray_goo.item.ModTraitItems;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GrayGooBlockEntity extends BlockEntity {
     private int age = 0;
@@ -16,7 +17,7 @@ public class GrayGooBlockEntity extends BlockEntity {
     private Map<String, Boolean> traits = new HashMap<>();
 
     public GrayGooBlockEntity(BlockPos pos, BlockState state) {
-        super(GrayGooBlocks.GRAY_GOO_BLOCK_ENTITY, pos, state);
+        super(ModBlockEntityTypes.GRAY_GOO.getBlockEntityType(), pos, state);
 
         this.resetAllTraits();
     }
@@ -38,7 +39,7 @@ public class GrayGooBlockEntity extends BlockEntity {
     }
 
     public void resetAllTraits() {
-        GrayGooItems.TRAIT_KEYS.forEach(key -> this.traits.put(key, false));
+        Arrays.stream(ModTraitItems.values()).forEach(trait -> this.traits.put(trait.getId(), false));
     }
 
     @Override
@@ -47,7 +48,7 @@ public class GrayGooBlockEntity extends BlockEntity {
         age = nbt.getInt("age");
         growthSize = nbt.getInt("growthSize");
 
-        GrayGooItems.TRAIT_KEYS.forEach(key -> this.traits.put(key, nbt.getBoolean(key)));
+        Arrays.stream(ModTraitItems.values()).forEach(trait -> this.traits.put(trait.getId(), nbt.getBoolean(trait.getId())));
     }
 
     @Override

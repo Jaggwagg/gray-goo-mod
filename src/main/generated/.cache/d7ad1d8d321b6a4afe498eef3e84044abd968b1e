@@ -1,0 +1,5 @@
+// 1.20.1	2024-02-15T12:05:39.781388101	Gray Goo Datagen/Tags for minecraft:block
+2e0e71f7dbffea6202a4421d5c31de9f830d5f59 data/gray_goo/tags/blocks/blacklisted_blocks.json
+121aacf48847880ef8d859f98edb146806cf90f5 data/gray_goo/tags/blocks/fluid_blocks.json
+5d41694eac8bcda730a8a2faf6fca72854b7916e data/gray_goo/tags/blocks/solid_blocks.json
+421b89f3732d39c0b8edb124f9ada9070af9e8c9 data/gray_goo/tags/blocks/biological_blocks.json

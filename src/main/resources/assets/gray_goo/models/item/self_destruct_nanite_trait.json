@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "gray_goo:item/self_destruct_nanite_trait"
+  }
+}

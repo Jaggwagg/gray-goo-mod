@@ -1,8 +1,8 @@
 package jaggwagg.gray_goo.screen;
 
 import jaggwagg.gray_goo.GrayGoo;
-import jaggwagg.gray_goo.block.GrayGooBlocks;
-import jaggwagg.gray_goo.item.GrayGooItems;
+import jaggwagg.gray_goo.block.ModBlocks;
+import jaggwagg.gray_goo.item.ModTraitItems;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingResultInventory;
@@ -39,7 +39,7 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
     }
 
     public NaniteModifierScreenHandler(int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
-        super(GrayGooScreenHandlers.NANITE_ASSEMBLER, syncId);
+        super(ModScreenHandlers.NANITE_MODIFIER.getScreenHandlerType(), syncId);
         this.context = context;
         this.availableTraits = new ArrayList<>();
         this.player = playerInventory.player;
@@ -67,7 +67,7 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
             this.output.setStack(0, ItemStack.EMPTY);
         }
 
-        if (this.input.getStack(0).isOf(GrayGooBlocks.Blocks.GRAY_GOO.block.asItem())) {
+        if (this.input.getStack(0).isOf(ModBlocks.GRAY_GOO.getBlock().asItem())) {
             NbtCompound nbt = this.input.getStack(0).getSubNbt("BlockEntityTag");
 
             if (nbt == null) {
@@ -76,37 +76,28 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
 
                 newNbt.put("BlockEntityTag", new NbtCompound());
 
-                Arrays.stream(GrayGooItems.Traits.values()).forEach(value -> {
-                    String string = value.toString().toLowerCase();
-                    int end = string.indexOf("_");
-                    String traitString = string.substring(0, end);
-
-                    newNbt.getCompound("BlockEntityTag").putBoolean(traitString, false);
-                });
+                Arrays.stream(ModTraitItems.values()).forEach(trait -> newNbt.getCompound("BlockEntityTag").putBoolean(trait.getId(), false));
 
                 newNbt.getCompound("BlockEntityTag").putString("id", GrayGoo.MOD_ID + ":gray_goo_block_entity");
                 newNbt.getCompound("BlockEntityTag").putInt("age", 0);
                 newNbt.getCompound("BlockEntityTag").putInt("growthSize", 2);
 
-                ItemStack outputStack = new ItemStack(GrayGooBlocks.Blocks.GRAY_GOO.block, numOfItems);
+                ItemStack outputStack = new ItemStack(ModBlocks.GRAY_GOO.getBlock(), numOfItems);
                 outputStack.setNbt(newNbt);
                 this.input.setStack(0, outputStack);
             } else {
-                Arrays.stream(GrayGooItems.Traits.values()).forEach(value -> {
-                    String string = value.toString().toLowerCase();
-                    int end = string.indexOf("_");
-                    String traitString = string.substring(0, end);
-
-                    if (nbt.getBoolean(traitString)) {
-                        this.availableTraits.add(value.item);
+                Arrays.stream(ModTraitItems.values()).forEach(trait -> {
+                    if (nbt.getBoolean(trait.getId())) {
+                        this.availableTraits.add(trait.getItem());
                     }
 
-                    if (this.input.getStack(1).isOf(value.item)) {
-                        if (!nbt.getBoolean(traitString)) {
-                            ItemStack outputStack = new ItemStack(GrayGooBlocks.Blocks.GRAY_GOO.block);
+                    if (this.input.getStack(1).isOf(trait.getItem())) {
+                        if (!nbt.getBoolean(trait.getId())) {
+                            ItemStack outputStack = new ItemStack(ModBlocks.GRAY_GOO.getBlock());
                             NbtCompound newNbt = new NbtCompound();
                             newNbt.copyFrom(nbt);
-                            newNbt.putBoolean(traitString, true);
+                            newNbt.putBoolean("hasTraits", true);
+                            newNbt.putBoolean(trait.getId(), true);
                             outputStack.setSubNbt("BlockEntityTag", newNbt);
                             this.output.setStack(0, outputStack);
                         }
@@ -127,9 +118,7 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
 
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-        this.context.run((world, pos) -> {
-            this.dropInventory(player, this.input);
-        });
+        this.context.run((world, pos) -> this.dropInventory(player, this.input));
     }
 
     public void onTakeOutput() {
@@ -149,7 +138,7 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
 
     @Override
     public boolean canUse(PlayerEntity playerEntity) {
-        return canUse(this.context, player, GrayGooBlocks.Blocks.NANITE_MODIFIER.block);
+        return canUse(this.context, player, ModBlocks.NANITE_MODIFIER.getBlock());
     }
 
     private boolean isUsableAsAddition() {
@@ -208,7 +197,7 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
         }
 
         public static boolean matches(ItemStack stack) {
-            return stack.isOf(GrayGooBlocks.Blocks.GRAY_GOO.block.asItem());
+            return stack.isOf(ModBlocks.GRAY_GOO.getBlock().asItem());
         }
     }
 
@@ -223,8 +212,8 @@ public class NaniteModifierScreenHandler extends ScreenHandler {
         }
 
         public static boolean matches(ItemStack stack) {
-            for (GrayGooItems.Traits value : GrayGooItems.Traits.values()) {
-                if (stack.isOf(value.item)) {
+            for (ModTraitItems trait : ModTraitItems.values()) {
+                if (stack.isOf(trait.getItem())) {
                     return true;
                 }
             }

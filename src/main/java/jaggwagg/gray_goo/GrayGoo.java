@@ -1,23 +1,32 @@
 package jaggwagg.gray_goo;
 
-import jaggwagg.gray_goo.block.GrayGooBlocks;
-import jaggwagg.gray_goo.config.GrayGooConfig;
-import jaggwagg.gray_goo.item.GrayGooItems;
-import jaggwagg.gray_goo.screen.GrayGooScreenHandlers;
+import jaggwagg.gray_goo.config.ModConfig;
+import jaggwagg.gray_goo.config.ModConfigManager;
+import jaggwagg.gray_goo.registry.*;
 import net.fabricmc.api.ModInitializer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class GrayGoo implements ModInitializer {
     public static final String MOD_ID = "gray_goo";
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    public static final GrayGooConfig CONFIG = GrayGooConfig.getConfig();
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final String CONFIG_FILE_PATH = System.getProperty("user.dir") + File.separator + "/config/" + MOD_ID + ".json";
+    public static final ModConfig CONFIG = ModConfigManager.loadConfig(CONFIG_FILE_PATH);
+
+    public static void loggerInfo(String message) {
+        LOGGER.info(MOD_ID + ": " + message);
+    }
 
     @Override
     public void onInitialize() {
-        GrayGooBlocks.init();
-        GrayGooItems.init();
-        GrayGooScreenHandlers.init();
-        LOGGER.info("Successfully initialized main!");
+        RegisterBlocks.init();
+        RegisterBlockEntityTypes.init();
+        RegisterItems.init();
+        RegisterItemGroups.init();
+        RegisterScreenHandlers.init();
+
+        LOGGER.info(MOD_ID + ": Initialized common successfully");
     }
 }

@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bubble_column",
+    "minecraft:kelp",
+    "minecraft:kelp_plant",
+    "minecraft:lava",
+    "minecraft:seagrass",
+    "minecraft:sea_pickle",
+    "minecraft:tall_seagrass",
+    "minecraft:water"
+  ]
+}

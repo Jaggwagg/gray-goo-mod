@@ -1,7 +1,8 @@
 package jaggwagg.gray_goo.block;
 
-import jaggwagg.gray_goo.GrayGoo;
 import jaggwagg.gray_goo.block.entity.GrayGooBlockEntity;
+import jaggwagg.gray_goo.block.tag.ModBlockTags;
+import jaggwagg.gray_goo.item.ModTraitItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
@@ -14,13 +15,12 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -30,147 +30,180 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 public class GrayGooBlock extends Block implements BlockEntityProvider {
-    static BooleanProperty ACTIVATED = BooleanProperty.of("activated");
+    private static final BooleanProperty ACTIVATED = BooleanProperty.of("activated");
+
     public GrayGooBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.getStateManager().getDefaultState().with(ACTIVATED, false));
     }
 
-    public void grow(World world, BlockPos pos) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        ArrayList<BlockPos> positions = this.getGrowableBlocks(world, pos);
+    private static Optional<GrayGooBlockEntity> getGrayGooBlockEntity(WorldAccess world, BlockPos blockPos) {
+        BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
-        if (!GrayGoo.CONFIG.getAllowGooSpread()) {
+        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
+            return Optional.of(grayGooBlockEntity);
+        }
+
+        return Optional.empty();
+    }
+
+    private void doMiscEffects(World world, BlockPos blockPos) {
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
+
+        if (grayGooBlockEntity.isEmpty()) {
             return;
         }
 
-        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
-            HashSet<Block> blocks = new HashSet<>();
-
-            if (grayGooBlockEntity.getTrait("biological")) {
-                GrayGoo.CONFIG.getBiologicalBlocks().forEach(value -> blocks.add(Registries.BLOCK.get(new Identifier(value))));
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.BROKEN_NANITE_TRAIT.getId())) {
+            if (world.getBlockState(blockPos).get(ACTIVATED)) {
+                world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
             }
+        }
 
-            if (grayGooBlockEntity.getTrait("fluid")) {
-                GrayGoo.CONFIG.getFluidBlocks().forEach(value -> blocks.add(Registries.BLOCK.get(new Identifier(value))));
-            }
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.EXPLOSIVE_NANITE_TRAIT.getId())) {
+            int randomExplosionChance = world.getRandom().nextInt(50);
 
-            if (grayGooBlockEntity.getTrait("solid")) {
-                GrayGoo.CONFIG.getSolidBlocks().forEach(value -> blocks.add(Registries.BLOCK.get(new Identifier(value))));
-            }
-
-            if (grayGooBlockEntity.getTrait("selfdestruct")) {
-                blocks.add(GrayGooBlocks.Blocks.GRAY_GOO.block);
-            }
-
-            if (grayGooBlockEntity.getTrait("linear")) {
-                ArrayList<BlockPos> growableBlocks = new ArrayList<>(List.of(
-                        pos.south(), pos.north(), pos.west(), pos.east(), pos.up(), pos.down()
-                ));
-
-                for (int i = 0; i < growableBlocks.size(); i++) {
-                    if (world.getBlockState(growableBlocks.get(i)).isOf(this)) {
-                        int index = ((i & 1) == 0) ? i + 1 : i - 1;
-
-                        if (blocks.contains(world.getBlockState(growableBlocks.get(index)).getBlock())) {
-                            world.setBlockState(growableBlocks.get(index), Blocks.AIR.getDefaultState());
-                            world.setBlockState(growableBlocks.get(index), this.getDefaultState().with(ACTIVATED, true));
-                            world.setBlockState(pos, this.getDefaultState().with(ACTIVATED, true));
-
-                            BlockEntity newBlockEntity = world.getBlockEntity(growableBlocks.get(index));
-
-                            if (newBlockEntity instanceof GrayGooBlockEntity newGrayGooBlockEntity) {
-                                newGrayGooBlockEntity.setAllTraits(grayGooBlockEntity.getAllTraits());
-                            }
-                        }
-                    }
-                }
-            } else {
-                for (BlockPos blockPos : positions) {
-                    if (blocks.contains(world.getBlockState(blockPos).getBlock())) {
-                        world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
-                        world.setBlockState(blockPos, this.getDefaultState().with(ACTIVATED, true));
-                        world.setBlockState(pos, this.getDefaultState().with(ACTIVATED, true));
-
-                        BlockEntity newBlockEntity = world.getBlockEntity(blockPos);
-
-                        if (newBlockEntity instanceof GrayGooBlockEntity newGrayGooBlockEntity) {
-                            newGrayGooBlockEntity.setAllTraits(grayGooBlockEntity.getAllTraits());
-                        }
-                    }
-                }
-            }
-
-            // Corrupted trait section
-            if (grayGooBlockEntity.getTrait("corrupted")) {
-                ArrayList<Block> randomBlocks = new ArrayList<>(List.of(
-                        Blocks.GRASS_BLOCK, Blocks.STONE, Blocks.DIRT, Blocks.DEEPSLATE, Blocks.BLACKSTONE, Blocks.NETHERRACK, Blocks.BASALT,
-                        Blocks.WATER, Blocks.LAVA
-                ));
-                java.util.Random random = new java.util.Random();
-                int randomInt = random.nextInt(50);
-
-                if (randomInt < randomBlocks.size()) {
-                    world.setBlockState(pos, randomBlocks.get(randomInt).getDefaultState());
-                }
+            if (randomExplosionChance == 0) {
+                world.createExplosion(null, world.getDamageSources().generic(), null, blockPos.getX(), blockPos.getY(), blockPos.getZ(), 2.0f, false, World.ExplosionSourceType.BLOCK);
             }
         }
     }
 
-    public ArrayList<BlockPos> getGrowableBlocks(World world, BlockPos pos) {
-        int posX = pos.getX();
-        int posY = pos.getY();
-        int posZ = pos.getZ();
-        ArrayList<BlockPos> positions = new ArrayList<>();
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    private void grow(World world, BlockPos blockPos) {
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
 
-        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
-            int growthSize = grayGooBlockEntity.getGrowthSize();
+        if (grayGooBlockEntity.isEmpty()) {
+            return;
+        }
 
-            for (int x = posX - growthSize; x <= posX + growthSize; x++) {
-                for (int y = posY - growthSize; y <= posY + growthSize; y++) {
-                    for (int z = posZ - growthSize; z <= posZ + growthSize; z++) {
-                        double distance = (posX - x) * (posX - x) + ((posZ - z) * (posZ - z)) + ((posY - y) * (posY - y));
+        boolean grew;
 
-                        if (distance < growthSize) {
-                            positions.add(new BlockPos(x, y, z));
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.LINEAR_NANITE_TRAIT.getId())) {
+            grew = growLinearly(world, blockPos, grayGooBlockEntity.get());
+        } else {
+            grew = growSpherically(world, blockPos, grayGooBlockEntity.get());
+        }
+
+        if (grew) {
+            world.setBlockState(blockPos, this.getDefaultState().with(ACTIVATED, true));
+        }
+    }
+
+    private boolean growLinearly(World world, BlockPos blockPos, GrayGooBlockEntity grayGooBlockEntity) {
+        boolean grew = false;
+
+        for (Direction direction : Direction.values()) {
+            BlockPos currentBlockPos = blockPos.offset(direction);
+            BlockPos oppositeBlockPos = blockPos.offset(direction.getOpposite());
+
+            if (world.getBlockState(currentBlockPos).isOf(this)) {
+                if (shouldGrow(world, oppositeBlockPos, grayGooBlockEntity)) {
+                    this.placeGooBlock(world, oppositeBlockPos, grayGooBlockEntity);
+                    grew = true;
+                }
+            }
+        }
+
+        return grew;
+    }
+
+    private boolean growSpherically(World world, BlockPos blockPos, GrayGooBlockEntity grayGooBlockEntity) {
+        boolean grew = false;
+        int growthSize = grayGooBlockEntity.getGrowthSize();
+        int posX = blockPos.getX();
+        int posY = blockPos.getY();
+        int posZ = blockPos.getZ();
+
+        for (int x = posX - growthSize; x <= posX + growthSize; x++) {
+            for (int y = posY - growthSize; y <= posY + growthSize; y++) {
+                for (int z = posZ - growthSize; z <= posZ + growthSize; z++) {
+                    double distance = (posX - x) * (posX - x) + ((posZ - z) * (posZ - z)) + ((posY - y) * (posY - y));
+
+                    if (distance < growthSize) {
+                        BlockPos currentBlockPos = new BlockPos(x, y, z);
+
+                        if (shouldGrow(world, currentBlockPos, grayGooBlockEntity)) {
+                            this.placeGooBlock(world, currentBlockPos, grayGooBlockEntity);
+                            grew = true;
                         }
                     }
                 }
             }
         }
 
-        return positions;
+        return grew;
+    }
+
+    private boolean shouldGrow(World world, BlockPos blockPos, GrayGooBlockEntity grayGooBlockEntity) {
+        BlockState blockState = world.getBlockState(blockPos);
+
+        if (blockState.isIn(ModBlockTags.BLACKLISTED_BLOCKS.getTagKey())) {
+            return false;
+        }
+
+        if (grayGooBlockEntity.getTrait(ModTraitItems.BIOLOGICAL_NANITE_TRAIT.getId())) {
+            if (blockState.isIn(ModBlockTags.BIOLOGICAL_BLOCKS.getTagKey())) {
+                return true;
+            }
+        }
+
+        if (grayGooBlockEntity.getTrait(ModTraitItems.FLUID_NANITE_TRAIT.getId())) {
+            if (blockState.contains(Properties.WATERLOGGED)) {
+                if (blockState.get(Properties.WATERLOGGED)) {
+                    return true;
+                }
+            }
+
+            if (blockState.isIn(ModBlockTags.FLUID_BLOCKS.getTagKey())) {
+                return true;
+            }
+        }
+
+        if (grayGooBlockEntity.getTrait(ModTraitItems.SOLID_NANITE_TRAIT.getId())) {
+            if (blockState.isIn(ModBlockTags.SOLID_BLOCKS.getTagKey())) {
+                return true;
+            }
+        }
+
+        if (grayGooBlockEntity.getTrait(ModTraitItems.SELF_DESTRUCT_NANITE_TRAIT.getId())) {
+            if (blockState.isOf(this)) {
+                Optional<GrayGooBlockEntity> currentGrayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
+
+                if (currentGrayGooBlockEntity.isPresent()) {
+                    return !currentGrayGooBlockEntity.get().getAllTraits().equals(grayGooBlockEntity.getAllTraits());
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void placeGooBlock(World world, BlockPos blockPos, GrayGooBlockEntity grayGooBlockEntity) {
+        world.setBlockState(blockPos, Blocks.AIR.getDefaultState());
+        world.setBlockState(blockPos, this.getDefaultState().with(ACTIVATED, true));
+
+        Optional<GrayGooBlockEntity> newGrayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
+
+        newGrayGooBlockEntity.ifPresent(gooBlockEntity -> gooBlockEntity.setAllTraits(grayGooBlockEntity.getAllTraits()));
+    }
+
+    private void poisonEntity(LivingEntity livingEntity) {
+        livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 200));
+        livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200));
+    }
+
+    private void damageEntity(World world, LivingEntity livingEntity) {
+        livingEntity.damage(world.getDamageSources().generic(), 2);
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        this.grow(world, pos);
-
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-
-        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity)  {
-            if (grayGooBlockEntity.getTrait("broken")) {
-                if (world.getBlockState(pos).get(ACTIVATED)) {
-                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
-                }
-            }
-
-            if (grayGooBlockEntity.getTrait("explosive")) {
-                int randomExplosionChance = random.nextInt(50);
-
-                if (randomExplosionChance == 0) {
-                    world.createExplosion(null, world.getDamageSources().generic(), null, pos.getX(), pos.getY(), pos.getZ(), 2.0f, true, World.ExplosionSourceType.BLOCK);
-                }
-            }
-        }
+    public void randomTick(BlockState state, ServerWorld world, BlockPos blockPos, Random random) {
+        this.grow(world, blockPos);
+        this.doMiscEffects(world, blockPos);
     }
 
     @Override
@@ -185,55 +218,68 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
     }
 
     @Override
-    public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    public void onSteppedOn(World world, BlockPos blockPos, BlockState state, Entity entity) {
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
 
-        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
-            if (grayGooBlockEntity.getTrait("tainted")) {
-                this.grow(world, pos);
-                entity.damage(world.getDamageSources().cactus(), 2);
-
-                if (entity instanceof LivingEntity livingEntity) {
-                    livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 200));
-                    livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200));
-                }
-            }
+        if (grayGooBlockEntity.isEmpty()) {
+            return;
         }
 
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.TAINTED_NANITE_TRAIT.getId())) {
+            this.grow(world, blockPos);
+            this.doMiscEffects(world, blockPos);
+
+            if (entity instanceof LivingEntity livingEntity) {
+                damageEntity(world, livingEntity);
+                poisonEntity(livingEntity);
+            }
+        }
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos blockPos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (world.isClient) {
             return ActionResult.SUCCESS;
-        } else {
-            this.grow(world, pos);
-
-            return ActionResult.CONSUME;
         }
+
+        this.grow(world, blockPos);
+        this.doMiscEffects(world, blockPos);
+
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
+
+        if (grayGooBlockEntity.isEmpty()) {
+            return ActionResult.PASS;
+        }
+
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.TAINTED_NANITE_TRAIT.getId())) {
+            poisonEntity(player);
+        }
+
+        return ActionResult.CONSUME;
     }
 
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    public void onBreak(World world, BlockPos blockPos, BlockState state, PlayerEntity player) {
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
 
-        if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
-            if (!world.isClient && !player.isCreative() && !world.getBlockState(pos).get(ACTIVATED)) {
-                ItemStack itemStack = new ItemStack(this);
-                blockEntity.setStackNbt(itemStack);
-
-                ItemEntity itemEntity = new ItemEntity(world, (double)pos.getX() + 0.5, (double)pos.getY() + 0.5, (double)pos.getZ() + 0.5, itemStack);
-                itemEntity.setToDefaultPickupDelay();
-                world.spawnEntity(itemEntity);
-            }
-
-            if (grayGooBlockEntity.getTrait("tainted")) {
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.HUNGER, 200));
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 200));
-            }
+        if (grayGooBlockEntity.isEmpty()) {
+            return;
         }
 
-        super.onBreak(world, pos, state, player);
+        if (!world.isClient && !player.isCreative() && !world.getBlockState(blockPos).get(ACTIVATED)) {
+            ItemStack itemStack = new ItemStack(this);
+            grayGooBlockEntity.get().setStackNbt(itemStack);
+
+            ItemEntity itemEntity = new ItemEntity(world, (double) blockPos.getX() + 0.5, (double) blockPos.getY() + 0.5, (double) blockPos.getZ() + 0.5, itemStack);
+            itemEntity.setToDefaultPickupDelay();
+            world.spawnEntity(itemEntity);
+        }
+
+        if (grayGooBlockEntity.get().getTrait(ModTraitItems.TAINTED_NANITE_TRAIT.getId())) {
+            poisonEntity(player);
+        }
+
+        super.onBreak(world, blockPos, state, player);
     }
 
     @Override
@@ -243,25 +289,39 @@ public class GrayGooBlock extends Block implements BlockEntityProvider {
 
     @SuppressWarnings("deprecation")
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        if (!world.isClient()) {
-            if (Objects.requireNonNull(world.getServer()).getGameRules().getInt(GameRules.RANDOM_TICK_SPEED) != 0) {
-                BlockEntity blockEntity = world.getBlockEntity(pos);
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos blockPos, BlockPos neighborPos) {
+        Optional<GrayGooBlockEntity> grayGooBlockEntity = getGrayGooBlockEntity(world, blockPos);
 
-                if (blockEntity instanceof GrayGooBlockEntity grayGooBlockEntity) {
-                    if (grayGooBlockEntity.getTrait("rapid")) {
-                        world.scheduleBlockTick(pos, this, (10 + world.getRandom().nextInt(50)) / Objects.requireNonNull(world.getServer()).getGameRules().getInt(GameRules.RANDOM_TICK_SPEED));
-                    }
-                }
-            }
+        if (grayGooBlockEntity.isEmpty()) {
+            return state;
         }
+
+        if (!grayGooBlockEntity.get().getTrait(ModTraitItems.RAPID_NANITE_TRAIT.getId())) {
+            return state;
+        }
+
+        if (world.getServer() == null) {
+            return state;
+        }
+
+        if (world.getServer().getGameRules().getInt(GameRules.RANDOM_TICK_SPEED) == 0) {
+            return state;
+        }
+
+        int minimumTickDelay = 100;
+        int addedTickDelay = 400;
+        int tickDelay;
+
+        tickDelay = (minimumTickDelay + world.getRandom().nextInt(addedTickDelay)) / world.getServer().getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
+        world.scheduleBlockTick(blockPos, this, tickDelay);
 
         return state;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        this.grow(world, pos);
+    public void scheduledTick(BlockState state, ServerWorld world, BlockPos blockPos, Random random) {
+        this.grow(world, blockPos);
+        this.doMiscEffects(world, blockPos);
     }
 }

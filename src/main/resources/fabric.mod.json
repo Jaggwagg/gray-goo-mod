@@ -12,8 +12,7 @@
     "sources": "https://github.com/Jaggwagg/gray-goo-mod.git",
     "issues": "https://github.com/Jaggwagg/gray-goo-mod/issues"
   },
-
-  "license": "MIT",
+  "license": "GPL-3.0",
   "icon": "assets/gray_goo/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -21,11 +20,18 @@
       "jaggwagg.gray_goo.GrayGoo"
     ],
     "client": [
-      "jaggwagg.gray_goo.GrayGooClient"
+      "jaggwagg.gray_goo.client.GrayGooClient"
     ]
   },
+  "mixins": [
+    "gray_goo.mixins.json",
+    {
+      "config": "gray_goo.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "depends": {
-    "fabricloader": ">=0.14.21",
+    "fabricloader": ">=0.15.0",
     "minecraft": "~1.20.1",
     "java": ">=17",
     "fabric-api": "*"

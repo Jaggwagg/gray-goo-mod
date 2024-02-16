@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "gray_goo_datagen",
+  "name": "Gray Goo Datagen",
+  "version": "1.1.0",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "jaggwagg.gray_goo.datagen.GrayGooDataGenerator"
+    ]
+  }
+}
